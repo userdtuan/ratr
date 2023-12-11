@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing Image</title>
+    <!-- Add Bootstrap CSS via CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">Image Processing</h1>
+        </div>
+        <div class="card-body row">
+            <div class="col-md-6">
+                <img src="{{ url_for('uploaded_file', filename=image) }}" class="img-fluid" style="max-width: 100%;">
+            </div>
+        </div>
+        <div class="card-footer">
+            <a class="btn btn-secondary" href="/">Back</a>
+        </div>
+    </div>
+    <!-- Add Bootstrap JS via CDN at the end of the body tag for better performance -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>

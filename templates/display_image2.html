@@ -1,0 +1,75 @@
+<!-- display_image.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing Image</title>
+    <!-- Add Bootstrap CSS via CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0/css/bootstrap.min.css">
+    <!-- Add loading animation CSS -->
+    <style>
+        .loader {
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        width: 120px;
+        height: 120px;
+        -webkit-animation: spin 2s linear infinite; /* Safari */
+        animation: spin 2s linear infinite;
+        }
+
+        /* Safari */
+        @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">Image Processing</h1>
+        </div>
+        <div class="card-body row">
+            <div class="col-md-6">
+                <!-- Update the image source dynamically using JavaScript -->
+                <img id="result-image" class="img-fluid" style="max-width: 100%;">
+                <div id="loading-container" class="loader"></div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a class="btn btn-secondary" href="/">Convert Another</a>
+        </div>
+    </div>
+    <!-- Add Bootstrap JS via CDN at the end of the body tag for better performance -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0/js/bootstrap.min.js"></script>
+    <script>
+        function checkProcessingStatus() {
+            fetch('/processing_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        // Update the image source to the completed image
+                        document.getElementById('result-image').src = "{{ url_for('uploaded_file', filename='result.jpg') }}";
+                        document.getElementById('loading-container').style.display = 'none';
+                        console.log('done');
+                    } else {
+                        // Continue checking after a delay
+                        setTimeout(checkProcessingStatus, 1000); // Check every 1 second
+                        console.log('loading..');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching processing status:', error);
+                });
+        }
+
+        // Start checking processing status
+        checkProcessingStatus();
+    </script>
+</body>
+</html>
