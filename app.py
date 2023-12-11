@@ -13,18 +13,16 @@ from googletrans import Translator
 from io import BytesIO
 import random
 import string
+import re
 
-def generate_random_text(length=10):
-    characters = string.ascii_letters + string.digits + string.punctuation + string.whitespace
-    random_text = ''.join(random.choice(characters) for _ in range(length))
-    return random_text
 
 def imgshow(image):
-    random_text = generate_random_text()
+    # random_text = generate_random_text()
     # cv2.imshow(random_text, image)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-  
+    print('ad')
+
 def img_url(url):
     # Send an HTTP GET request to the specified URL to fetch the image data
     response = requests.get(url)
@@ -40,6 +38,48 @@ def img_url(url):
 
     # Return the decoded image
     return img
+
+def pil_to_cv2(pil_image):
+    # Convert PIL Image to NumPy array
+    image_np = np.array(pil_image)
+
+    # Convert RGB to BGR (OpenCV uses BGR by default)
+    image_cv2 = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+
+    return image_cv2
+
+def process_image(input_image, scale_factor=1.0, blur_radius=0):
+    try:
+        # Scale up the image if a scale factor is provided
+        if scale_factor > 1.0:
+            new_width = int(input_image.width * scale_factor)
+            new_height = int(input_image.height * scale_factor)
+            input_image = input_image.resize((new_width, new_height), PILImage.LANCZOS)
+
+        # Apply blur filter if a blur radius is provided
+        if blur_radius > 0:
+            input_image = input_image.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+        # Return the processed image
+        return input_image
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+def x2_img(img):
+  imz = cv2_to_pil(img)
+  return pil_to_cv2(process_image(imz,2))
+
+def contains_only_numbers(input_string):
+    # Define a regular expression pattern that matches only digits
+    pattern = '^[０-９,\s．]+$'
+
+    # Use re.match to check if the entire string matches the pattern
+    match = re.match(pattern, input_string)
+
+    # If there is a match, the string contains only numbers
+    return match is not None
 
 def enhance_img(image):
   img = image.copy()
@@ -76,15 +116,16 @@ def show_box(img, arr):
     cropped = img[y:y + h, x:x + w]
 
     fst, scnd = most_frequent_rgb(cropped)
-    jp_text = text_mgocr(enhance_img(cropped))
+    jp_text = text_mgocr(x2_img(cropped))
     imgt = text_to_image(trans_jp(jp_text), w,h,fst,scnd)
-    imgshow(imgt)
-    # print(x,y,w,h)
-    imgz[y:y + h, x:x + w] = imgt
-    imgshow(cropped)
-    print(jp_text)
-    print("")
-  imgshow(imgz)
+    tcheck = contains_only_numbers(jp_text)
+    print(jp_text, tcheck)
+    if tcheck == False:
+      imgshow(imgt)
+      # print(x,y,w,h)
+      imgz[y:y + h, x:x + w] = imgt
+      imgshow(cropped)
+      print("")
   cv2.imwrite("./uploads/result.jpg", imgz)
 
 def draw_reg(img, arr):
@@ -136,8 +177,9 @@ def most_frequent_rgb(image):
 
     most = tuple(np.unique(flattened_image, axis=0)[most_frequent_color_index])
     second = tuple(np.unique(flattened_image, axis=0)[second_frequent_color_index])
-    if (most[2] >220 and most[1] >220 and most[0] >220):
-      second = (0,0,0)
+    # if (most[2] >220 and most[1] >220 and most[0] >220):
+    #   second = (0,0,0)
+
     # show_colored_rectangle(most_frequent_color)
     # show_colored_rectangle(second_frequent_color)
     return [(most[2],most[1],most[0]),(second[2],second[1],second[0])]
@@ -154,7 +196,7 @@ def calculate_font_size(text, img_w, img_h, font_path):
         text_bbox = temp_draw.textbbox((0, 0), text, font=temp_font)
         text_w, text_h = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
 
-        if text_w <= img_w and text_h <= img_h*0.7:
+        if text_w <= img_w and text_h <= img_h*0.5:
             break
 
         font_size -= 1
@@ -211,9 +253,6 @@ def trans_jp(text):    # using https://rapidapi.com/falcondsp/api/opentranslator
     translation = translator.translate(text, src='ja', dest='en')
     return translation.text
 
-# image_url = "https://manesetsu.jp/wp-content/uploads/2018/10/%E3%83%9E%E3%83%8D%E3%82%BB%E3%83%84370%E8%8F%B1%E6%B2%BC%E3%82%AD%E3%83%A3%E3%83%83%E3%82%B7%E3%83%A5%E3%83%AC%E3%82%B9%E7%A4%BE%E4%BC%9A2%EF%BC%8F%E3%82%B0%E3%83%A9%E3%83%951.png"
-# image_url = "https://raw.githubusercontent.com/cfwork9601/img/main/small_piece.png"
-# img = img_url(image_url)
 def main():
   img = cv2.imread("./uploads/input.jpg")
   img2 = enhance_img(img)
@@ -223,16 +262,3 @@ def main():
   show_box(img, boxes)
   # draw_reg(img, boxes)
   return('result.jpg')
-
-
-# x,y,w,h = boxes[4]
-# cropped = img[y:y + h, x:x + w]
-# imgshow(cropped)
-# # print(boxes[4])
-# fst, snd = most_frequent_rgb(cropped)
-# show_colored_rectangle(fst)
-
-# imgshow(img2)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-# main()
