@@ -177,8 +177,8 @@ def most_frequent_rgb(image):
 
     most = tuple(np.unique(flattened_image, axis=0)[most_frequent_color_index])
     second = tuple(np.unique(flattened_image, axis=0)[second_frequent_color_index])
-    # if (most[2] >220 and most[1] >220 and most[0] >220):
-    #   second = (0,0,0)
+    if (most[2] >220 and most[1] >220 and most[0] >220):
+      second = (0,0,0)
 
     # show_colored_rectangle(most_frequent_color)
     # show_colored_rectangle(second_frequent_color)
