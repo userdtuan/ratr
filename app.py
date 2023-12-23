@@ -7,8 +7,8 @@ import requests
 import numpy as np
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
-from manga_ocr import MangaOcr
-mocr = MangaOcr()
+# from manga_ocr import MangaOcr
+# mocr = MangaOcr()
 from googletrans import Translator
 from io import BytesIO
 import random
@@ -21,23 +21,23 @@ def imgshow(image):
     # cv2.imshow(random_text, image)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-    print('ad')
+    print('Processing..')
 
 def img_url(url):
-    # Send an HTTP GET request to the specified URL to fetch the image data
     response = requests.get(url)
 
-    # Extract binary image data from the HTTP response
     image_data = BytesIO(response.content)
 
-    # Convert the binary image data into a NumPy array of type uint8
     image_array = np.asarray(bytearray(image_data.read()), dtype=np.uint8)
 
-    # Decode the NumPy array into an OpenCV image object in color mode
     img = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
     # Return the decoded image
     return img
+
+def readert(img):
+  res = reader.readtext(img,detail =0)
+  return res[0]
 
 def pil_to_cv2(pil_image):
     # Convert PIL Image to NumPy array
@@ -73,7 +73,8 @@ def x2_img(img):
 
 def contains_only_numbers(input_string):
     # Define a regular expression pattern that matches only digits
-    pattern = '^[０-９,\s．]+$'
+    # pattern = '^[０-９,\s．]+$'
+    pattern = '^-?\d+(\.\d+)?$'
 
     # Use re.match to check if the entire string matches the pattern
     match = re.match(pattern, input_string)
@@ -116,7 +117,12 @@ def show_box(img, arr):
     cropped = img[y:y + h, x:x + w]
 
     fst, scnd = most_frequent_rgb(cropped)
-    jp_text = text_mgocr(x2_img(cropped))
+    # jp_text = text_mgocr(x2_img(cropped))
+    try:
+      jp_text = readert(x2_img(cropped))
+    except:
+      continue
+    # jp_text = readert(x2_img(cropped))
     imgt = text_to_image(trans_jp(jp_text), w,h,fst,scnd)
     tcheck = contains_only_numbers(jp_text)
     print(jp_text, tcheck)
@@ -243,14 +249,14 @@ def cv2_to_pil(cv2_image):
 
     return pil_image
 
-def text_mgocr(imagez):
-    image = cv2_to_pil(imagez)
-    # mocr = MangaOcr()
-    text = mocr(image)
-    return text
-def trans_jp(text):    # using https://rapidapi.com/falcondsp/api/opentranslator/
+# def text_mgocr(imagez):
+#     image = cv2_to_pil(imagez)
+#     # mocr = MangaOcr()
+#     text = mocr(image)
+#     return text
+def trans_jp(text, lang = 'en'):    # using https://rapidapi.com/falcondsp/api/opentranslator/
     translator = Translator()
-    translation = translator.translate(text, src='ja', dest='en')
+    translation = translator.translate(text, src='ja', dest = lang)
     return translation.text
 
 def main():
