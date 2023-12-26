@@ -44,6 +44,7 @@ def uploaded_file(filename):
 def upload_file():
     if request.method == 'POST':
         # Check if the POST request has a file part
+        lang = request.form.get("language")
         if 'file' not in request.files:
             return 'No file part'
         file = request.files['file']
@@ -62,7 +63,7 @@ def upload_file():
 
             # Start a background thread to process the image
             # thread = Thread(target=threshold_image, args=(filename,))
-            thread = Thread(target=main)
+            thread = Thread(target=main, args=(lang,))
             thread.start()
 
             # Return a JSON response indicating the processing has started

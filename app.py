@@ -110,7 +110,7 @@ def get_box(img):
     arr.append((x, y, w, h))
   return arr
 
-def show_box(img, arr):
+def show_box(img, arr,lang):
   imgz = img.copy()
   for item in arr:
     x,y,w,h = item[0],item[1],item[2],item[3]
@@ -123,7 +123,7 @@ def show_box(img, arr):
     except:
       continue
     # jp_text = readert(x2_img(cropped))
-    imgt = text_to_image(trans_jp(jp_text), w,h,fst,scnd)
+    imgt = text_to_image(trans_jp(jp_text,lang), w,h,fst,scnd)
     tcheck = contains_only_numbers(jp_text)
     print(jp_text, tcheck)
     if tcheck == False:
@@ -259,12 +259,12 @@ def trans_jp(text, lang = 'en'):    # using https://rapidapi.com/falcondsp/api/o
     translation = translator.translate(text, src='ja', dest = lang)
     return translation.text
 
-def main():
+def main(lang='en'):
   img = cv2.imread("./uploads/input.jpg")
   img2 = enhance_img(img)
   imgshow(img2)
   boxes = get_box(img2)
   # print(len(boxes))
-  show_box(img, boxes)
+  show_box(img, boxes, lang)
   # draw_reg(img, boxes)
   return('result.jpg')
