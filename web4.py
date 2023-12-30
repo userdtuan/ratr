@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template, send_from_directory, redirect, url_for, jsonify
+from flask import Flask, request, render_template, send_from_directory, redirect, url_for, jsonify, send_file
 import cv2
 import time
 from threading import Thread
@@ -84,6 +84,11 @@ def processing_status():
     else:
         return jsonify({'status': 'processing', 'image': 'result.jpg'})
 
+@app.route('/download')
+def download_image():
+    # Use send_file to send the image file to the client
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'result.jpg')
+    return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5003)))

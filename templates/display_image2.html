@@ -88,7 +88,9 @@
 
             </div>
             <div class="col-md-6">
-                <button class="btn btn-success" onclick="downloadImage()">Download Image</button>
+                <button class="btn btn-success">
+                    <a href="{{ url_for('download_image') }}" style="color: inherit; text-decoration: none;">Download Image</a>
+                  </button>
             </div>
         </div>
     </div>

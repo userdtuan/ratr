@@ -1,3 +1,5 @@
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 import easyocr
 reader = easyocr.Reader(['en','ja'], gpu = True) # need to run only once to load model into memory
 import cv2
@@ -256,6 +258,7 @@ def cv2_to_pil(cv2_image):
 #     return text
 def trans_jp(text, lang = 'en'):    # using https://rapidapi.com/falcondsp/api/opentranslator/
     translator = Translator()
+    print(text)
     translation = translator.translate(text, src='ja', dest = lang)
     return translation.text
 
