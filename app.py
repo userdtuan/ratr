@@ -9,14 +9,14 @@ import requests
 import numpy as np
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
-# from manga_ocr import MangaOcr
-# mocr = MangaOcr()
 from googletrans import Translator
 from io import BytesIO
 import random
 import string
 import re
+import math
 
+env = 'show'
 
 def imgshow(image):
     # random_text = generate_random_text()
@@ -112,7 +112,7 @@ def get_box(img):
     arr.append((x, y, w, h))
   return arr
 
-def show_box(img, arr,lang):
+def show_box(img, arr,lang='en'):
   imgz = img.copy()
   for item in arr:
     x,y,w,h = item[0],item[1],item[2],item[3]
@@ -135,6 +135,7 @@ def show_box(img, arr,lang):
       imgshow(cropped)
       print("")
   cv2.imwrite("./uploads/result.jpg", imgz)
+  # cv2_imshow(imgz)
 
 def draw_reg(img, arr):
   for item in arr:
@@ -165,7 +166,7 @@ def show_colored_rectangle(color_tuple):
 def most_frequent_rgb(image):
     """
     Find the most frequent RGB color in an image.
-
+  
     Args:
         image (numpy.ndarray): The image to analyze.
 
@@ -187,9 +188,16 @@ def most_frequent_rgb(image):
     second = tuple(np.unique(flattened_image, axis=0)[second_frequent_color_index])
     if (most[2] >220 and most[1] >220 and most[0] >220):
       second = (0,0,0)
+    if are_colors_near(most, second):
+      second = (0,0,0)
 
-    # show_colored_rectangle(most_frequent_color)
-    # show_colored_rectangle(second_frequent_color)
+    if (env == 'dev'):
+      # print(are_colors_near(most, second))
+      show_colored_rectangle(most)
+      print(most)
+      show_colored_rectangle(second)
+      print(second)
+      print('end show color')
     return [(most[2],most[1],most[0]),(second[2],second[1],second[0])]
 
 def calculate_font_size(text, img_w, img_h, font_path):
@@ -251,16 +259,28 @@ def cv2_to_pil(cv2_image):
 
     return pil_image
 
-# def text_mgocr(imagez):
-#     image = cv2_to_pil(imagez)
-#     # mocr = MangaOcr()
-#     text = mocr(image)
-#     return text
-def trans_jp(text, lang = 'en'):    # using https://rapidapi.com/falcondsp/api/opentranslator/
+def trans_jp(text, lang = 'en'):
     translator = Translator()
     print(text)
     translation = translator.translate(text, src='ja', dest = lang)
     return translation.text
+
+def rgb_distance(color1, color2):
+    r1, g1, b1 = color1
+    r2, g2, b2 = color2
+
+    # Chuyển đổi giá trị RGB thành số nguyên hoặc số dấu chấm động
+    r1, g1, b1 = int(r1), int(g1), int(b1)
+    r2, g2, b2 = int(r2), int(g2), int(b2)
+
+    # Tính khoảng cách Euclidean
+    distance = math.sqrt((r1 - r2)**2 + (g1 - g2)**2 + (b1 - b2)**2)
+
+    return distance
+
+def are_colors_near(color1, color2, threshold=30):
+    # Check if the distance is below the specified threshold
+    return rgb_distance(color1, color2) < threshold
 
 def main(lang='en'):
   img = cv2.imread("./uploads/input.jpg")
