@@ -107,7 +107,12 @@
                         document.getElementById('result-image').src = "{{ url_for('uploaded_file', filename='result.jpg') }}";
                         document.getElementById('loading-container').style.display = 'none';
                         console.log('done');
-                    } else {
+                    } 
+                    else if (data.status === 'error'){
+                        alert("error")
+                        window.location.href = '/upload';
+                    }
+                    else {
                         // Continue checking after a delay
                         setTimeout(checkProcessingStatus, 1000); // Check every 1 second
                         console.log('loading..');

@@ -11,6 +11,9 @@ path = os.path.join(APP_ROOT, 'uploads/')
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
+MODULE_PATH = os.environ.get("EASYOCR_MODULE_PATH") or \
+              os.environ.get("MODULE_PATH") or \
+              os.path.expanduser("~/.EasyOCR/")
 
 def threshold_image(image_path):
     # Load the image using OpenCV
@@ -58,8 +61,12 @@ def upload_file():
             filename = os.path.join(app.config['UPLOAD_FOLDER'], 'input.jpg')
             file.save(filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'result.jpg')
+            error_path = os.path.join(app.config['UPLOAD_FOLDER'], 'log.txt')
+
             if os.path.exists(file_path):
                 os.remove(file_path)
+            if os.path.exists(error_path):
+                os.remove(error_path)
 
             # Start a background thread to process the image
             # thread = Thread(target=threshold_image, args=(filename,))
@@ -70,19 +77,24 @@ def upload_file():
             # return jsonify({'status': 'processing', 'image': 'processing.jpg'})
             return render_template('display_image2.html', image='thresholded.jpg')
 
-
+    print(MODULE_PATH)
     return render_template('upload.html')
 
 
 @app.route('/processing_status')
 def processing_status():
     thresholded_path = os.path.join(app.config['UPLOAD_FOLDER'], 'result.jpg')
+    error_path = os.path.join(app.config['UPLOAD_FOLDER'], 'log.txt')
 
     # Check if the thresholded image exists
     if os.path.exists(thresholded_path):
         return jsonify({'status': 'completed', 'image': 'result.jpg'})
+    elif os.path.exists(error_path):
+        # return jsonify({'status': 'processing', 'image': 'result.jpg'})
+        return jsonify({'status': 'error', 'image': 'log.jpg'})
     else:
         return jsonify({'status': 'processing', 'image': 'result.jpg'})
+    
 
 @app.route('/download')
 def download_image():

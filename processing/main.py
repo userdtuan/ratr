@@ -11,13 +11,11 @@ from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
 from googletrans import Translator
 from io import BytesIO
-import random
-import string
 import re
 import math
-import logging
+from ultralytics import YOLO
 
-
+model = YOLO("yolov8n.pt")
 env = 'show'
 
 def imgshow(image):
@@ -38,6 +36,21 @@ def img_url(url):
 
     # Return the decoded image
     return img
+
+def detect_text(img):
+  results = model.predict(show=True, source=img)
+  img = img_url(img)
+  arr = []
+  for box in results[0].boxes.xywh:
+      xx = int(box[0].item())
+      yy = int(box[1].item())
+      w = int(box[2].item())
+      h = int(box[3].item())
+      x = int(xx - (w / 2))
+      y = int(yy - (h / 2))
+      # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+      arr.append((x, y, w, h))
+  return arr
 
 def readert(img):
   res = reader.readtext(img,detail =0)
@@ -76,14 +89,10 @@ def x2_img(img):
   return pil_to_cv2(process_image(imz,2))
 
 def contains_only_numbers(input_string):
-    # Define a regular expression pattern that matches only digits
-    # pattern = '^[０-９,\s．]+$'
     pattern = '^-?\d+(\.\d+)?$'
 
-    # Use re.match to check if the entire string matches the pattern
     match = re.match(pattern, input_string)
 
-    # If there is a match, the string contains only numbers
     return match is not None
 
 def enhance_img(image):
@@ -271,11 +280,9 @@ def rgb_distance(color1, color2):
     r1, g1, b1 = color1
     r2, g2, b2 = color2
 
-    # Chuyển đổi giá trị RGB thành số nguyên hoặc số dấu chấm động
     r1, g1, b1 = int(r1), int(g1), int(b1)
     r2, g2, b2 = int(r2), int(g2), int(b2)
 
-    # Tính khoảng cách Euclidean
     distance = math.sqrt((r1 - r2)**2 + (g1 - g2)**2 + (b1 - b2)**2)
 
     return distance
@@ -285,26 +292,11 @@ def are_colors_near(color1, color2, threshold=30):
     return rgb_distance(color1, color2) < threshold
 
 def main(lang='en'):
-  try:
-    img = cv2.imread("./uploads/input.jpg")
-  except Exception as e:
-    # Log the exception to a text file
-    logging.basicConfig(filename='./uploads/log.txt', level=logging.ERROR)
-    return
-  try:
-    img2 = enhance_img(img)
-  except Exception as e:
-    # Log the exception to a text file
-    logging.basicConfig(filename='./uploads/log.txt', level=logging.ERROR)
-    return
+  img = cv2.imread("./uploads/input.jpg")
+  img2 = enhance_img(img)
   imgshow(img2)
   boxes = get_box(img2)
-    # print(len(boxes))
-  try:
-    show_box(img, boxes, lang)
-  except Exception as e:
-    # Log the exception to a text file
-    logging.basicConfig(filename='./uploads/log.txt', level=logging.ERROR)
-    return
+  # print(len(boxes))
+  show_box(img, boxes, lang)
   # draw_reg(img, boxes)
-  # return('result.jpg')
+  return('result.jpg')
